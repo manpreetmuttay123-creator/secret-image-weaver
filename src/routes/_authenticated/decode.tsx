@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
+import { addHistory } from "@/lib/history-store";
 import { decryptPayload, extractBytesFromImageData, fileToImageData } from "@/lib/stego";
 
 export const Route = createFileRoute("/_authenticated/decode")({
@@ -16,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/decode")({
 });
 
 function DecodePage() {
-  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [password, setPassword] = useState("");
@@ -31,10 +29,8 @@ function DecodePage() {
     setPreview(URL.createObjectURL(f));
   };
 
-  const log = async (status: "success" | "failed", messageLength: number | null) => {
-    if (!user) return;
-    await supabase.from("history").insert({
-      user_id: user.id,
+  const log = (status: "success" | "failed", messageLength: number | null) => {
+    addHistory({
       filename: file?.name ?? "unknown",
       operation: "decode",
       status,
@@ -51,10 +47,10 @@ function DecodePage() {
       const payload = extractBytesFromImageData(img);
       const msg = await decryptPayload(payload, password);
       setRevealed(msg);
-      await log("success", msg.length);
+      log("success", msg.length);
       toast.success("Message decoded");
     } catch (e) {
-      await log("failed", null);
+      log("failed", null);
       toast.error(e instanceof Error ? e.message : "Decoding failed");
     } finally {
       setBusy(false);

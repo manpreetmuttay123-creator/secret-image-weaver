@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
+import { addHistory } from "@/lib/history-store";
 import {
   encryptMessage,
   embedBytesIntoImageData,
@@ -26,7 +25,6 @@ const ACCEPTED = ["image/png", "image/bmp"];
 const MAX_SIZE = 15 * 1024 * 1024;
 
 function EncodePage() {
-  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -50,10 +48,8 @@ function EncodePage() {
     setPreview(URL.createObjectURL(f));
   };
 
-  const log = async (status: "success" | "failed", messageLength: number | null) => {
-    if (!user) return;
-    await supabase.from("history").insert({
-      user_id: user.id,
+  const log = (status: "success" | "failed", messageLength: number | null) => {
+    addHistory({
       filename: file?.name ?? "unknown",
       operation: "encode",
       status,
@@ -78,10 +74,10 @@ function EncodePage() {
       setProgress(100);
       setStegoBlob(blob);
       setStegoUrl(URL.createObjectURL(blob));
-      await log("success", message.length);
+      log("success", message.length);
       toast.success("Message embedded successfully");
     } catch (e) {
-      await log("failed", message.length);
+      log("failed", message.length);
       toast.error(e instanceof Error ? e.message : "Encoding failed");
     } finally {
       setBusy(false);

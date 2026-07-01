@@ -1,15 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { History as HistoryIcon, Lock, Unlock, Search, Trash2, FileImage } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { deleteHistory, listHistory, type HistoryRow } from "@/lib/history-store";
 
 export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({ meta: [{ title: "History — StegoCrypt" }] }),
@@ -17,35 +15,30 @@ export const Route = createFileRoute("/_authenticated/history")({
 });
 
 function HistoryPage() {
-  const { user } = useAuth();
-  const qc = useQueryClient();
+  const [rows, setRows] = useState<HistoryRow[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "encode" | "decode">("all");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["history", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("history")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  useEffect(() => {
+    const sync = () => setRows(listHistory());
+    sync();
+    window.addEventListener("stegocrypt-history-change", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("stegocrypt-history-change", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
-  const filtered = (data ?? []).filter((r) => {
+  const filtered = rows.filter((r) => {
     if (filter !== "all" && r.operation !== filter) return false;
     if (search && !r.filename.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const deleteRow = async (id: string) => {
-    const { error } = await supabase.from("history").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+  const deleteRow = (id: string) => {
+    deleteHistory(id);
     toast.success("Removed");
-    qc.invalidateQueries({ queryKey: ["history"] });
-    qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
   };
 
   return (
@@ -55,7 +48,7 @@ function HistoryPage() {
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/20 text-secondary"><HistoryIcon className="h-5 w-5" /></span>
           Activity history
         </h1>
-        <p className="text-muted-foreground mt-1">Every encode and decode you've run.</p>
+        <p className="text-muted-foreground mt-1">Every encode and decode you've run on this device.</p>
       </div>
 
       <div className="cyber-card rounded-2xl p-6">
@@ -74,9 +67,7 @@ function HistoryPage() {
           </Select>
         </div>
 
-        {isLoading ? (
-          <div className="py-10 text-center text-sm text-muted-foreground">Loading…</div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="py-14 text-center text-muted-foreground">
             <FileImage className="h-10 w-10 mx-auto mb-2 opacity-50" />
             <div className="text-sm">No matching activity.</div>

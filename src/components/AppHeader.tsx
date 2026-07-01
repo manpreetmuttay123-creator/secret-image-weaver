@@ -1,9 +1,6 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Shield, LayoutDashboard, Lock, Unlock, History, LogOut, Menu, X } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Shield, LayoutDashboard, Lock, Unlock, History, Menu, X } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -13,15 +10,8 @@ const navItems = [
 ] as const;
 
 export function AppHeader() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
@@ -36,55 +26,36 @@ export function AppHeader() {
           </span>
         </Link>
 
-        {user && (
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map(({ to, label, icon: Icon }) => {
-              const active = pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
-
-        <div className="flex items-center gap-2">
-          {user ? (
-            <>
-              <span className="hidden sm:inline text-xs text-muted-foreground font-mono">
-                {user.email}
-              </span>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline ml-1">Sign out</span>
-              </Button>
-              <button
-                className="md:hidden p-2 text-foreground"
-                onClick={() => setOpen(!open)}
-                aria-label="Toggle menu"
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map(({ to, label, icon: Icon }) => {
+            const active = pathname === to;
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
               >
-                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </>
-          ) : (
-            <Link to="/auth">
-              <Button size="sm" variant="default">Sign in</Button>
-            </Link>
-          )}
-        </div>
+                <Icon className="h-4 w-4" />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <button
+          className="md:hidden p-2 text-foreground"
+          onClick={() => setOpen(!open)}
+          aria-label="Toggle menu"
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </div>
 
-      {user && open && (
+      {open && (
         <nav className="md:hidden border-t border-border/60 bg-background/95 px-4 py-3 space-y-1">
           {navItems.map(({ to, label, icon: Icon }) => (
             <Link

@@ -1,28 +1,14 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 
+// Auth removed — this pathless layout is now a public shell wrapper so the
+// existing /dashboard, /encode, /decode, /history URLs keep working without
+// requiring sign-in.
 export const Route = createFileRoute("/_authenticated")({
-  component: AuthLayout,
+  component: PublicLayout,
 });
 
-function AuthLayout() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", replace: true });
-  }, [user, loading, navigate]);
-
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
+function PublicLayout() {
   return (
     <div className="min-h-screen">
       <AppHeader />

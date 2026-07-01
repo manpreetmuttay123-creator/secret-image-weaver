@@ -39,9 +39,9 @@ function Landing() {
             but only the right password unlocks the truth.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link to="/auth">
+            <Link to="/encode">
               <Button size="lg" className="glow-cyan">
-                Get started <ChevronRight className="ml-1 h-4 w-4" />
+                Start encoding <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
             <a href="#how">
@@ -132,8 +132,8 @@ function Landing() {
       <section className="mx-auto max-w-4xl px-4 py-20 text-center">
         <Shield className="h-10 w-10 text-primary mx-auto mb-4" />
         <h2 className="text-3xl md:text-4xl font-bold">Ready to hide your first message?</h2>
-        <p className="text-muted-foreground mt-3">Create a free account and start encoding in seconds.</p>
-        <Link to="/auth" className="inline-block mt-8">
+        <p className="text-muted-foreground mt-3">No sign-up, no account. Jump straight in.</p>
+        <Link to="/encode" className="inline-block mt-8">
           <Button size="lg" className="glow-cyan">Launch StegoCrypt <ChevronRight className="ml-1 h-4 w-4" /></Button>
         </Link>
       </section>
