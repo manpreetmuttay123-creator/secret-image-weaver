@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { Lock, Unlock, History as HistoryIcon, TrendingUp, FileImage, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { listHistory, type HistoryRow } from "@/lib/history-store";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — StegoCrypt" }] }),
@@ -11,38 +10,40 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
-  const { user } = useAuth();
+  const [rows, setRows] = useState<HistoryRow[]>([]);
 
-  const { data: stats } = useQuery({
-    queryKey: ["dashboard-stats", user?.id],
-    queryFn: async () => {
-      const [encoded, decoded, recent] = await Promise.all([
-        supabase.from("history").select("*", { count: "exact", head: true }).eq("operation", "encode").eq("status", "success"),
-        supabase.from("history").select("*", { count: "exact", head: true }).eq("operation", "decode").eq("status", "success"),
-        supabase.from("history").select("*").order("created_at", { ascending: false }).limit(5),
-      ]);
-      return {
-        encoded: encoded.count ?? 0,
-        decoded: decoded.count ?? 0,
-        recent: recent.data ?? [],
-      };
-    },
-  });
+  useEffect(() => {
+    const sync = () => setRows(listHistory());
+    sync();
+    window.addEventListener("stegocrypt-history-change", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("stegocrypt-history-change", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const encoded = rows.filter((r) => r.operation === "encode" && r.status === "success").length;
+  const decoded = rows.filter((r) => r.operation === "decode" && r.status === "success").length;
+  const total = rows.length;
+  const successes = rows.filter((r) => r.status === "success").length;
+  const successRate = total > 0 ? `${Math.round((successes / total) * 100)}%` : "—";
+  const recent = rows.slice(0, 5);
 
   const cards = [
-    { label: "Encoded Images", value: stats?.encoded ?? 0, icon: Lock, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Decoded Messages", value: stats?.decoded ?? 0, icon: Unlock, color: "text-accent", bg: "bg-accent/10" },
-    { label: "Total Activity", value: (stats?.encoded ?? 0) + (stats?.decoded ?? 0), icon: TrendingUp, color: "text-secondary", bg: "bg-secondary/20" },
-    { label: "Success Rate", value: "100%", icon: CheckCircle2, color: "text-accent", bg: "bg-accent/10" },
+    { label: "Encoded Images", value: encoded, icon: Lock, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Decoded Messages", value: decoded, icon: Unlock, color: "text-accent", bg: "bg-accent/10" },
+    { label: "Total Activity", value: total, icon: TrendingUp, color: "text-secondary", bg: "bg-secondary/20" },
+    { label: "Success Rate", value: successRate, icon: CheckCircle2, color: "text-accent", bg: "bg-accent/10" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">
-          Welcome back, <span className="gradient-text">{user?.user_metadata?.username || user?.email?.split("@")[0]}</span>
+          Welcome to <span className="gradient-text">StegoCrypt</span>
         </h1>
-        <p className="text-muted-foreground mt-1">Your secure steganography workspace.</p>
+        <p className="text-muted-foreground mt-1">Your open steganography workspace — no sign-in required.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -91,9 +92,9 @@ function Dashboard() {
           </h2>
           <Link to="/history" className="text-xs text-primary hover:underline">View all →</Link>
         </div>
-        {stats?.recent.length ? (
+        {recent.length ? (
           <ul className="divide-y divide-border/60">
-            {stats.recent.map((r) => (
+            {recent.map((r) => (
               <li key={r.id} className="py-3 flex items-center justify-between text-sm">
                 <div className="flex items-center gap-3 min-w-0">
                   {r.operation === "encode" ? (
