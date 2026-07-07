@@ -128,11 +128,6 @@ function EncodePage() {
             <div className="text-xs text-muted-foreground mt-1 font-mono">{message.length} / 20000 chars</div>
           </div>
 
-          <div>
-            <Label htmlFor="pw">Encryption password</Label>
-            <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 characters" />
-            <p className="text-xs text-muted-foreground mt-1 font-mono">Used to derive a 256-bit AES key. Without it, the message is unrecoverable.</p>
-          </div>
 
           {progress > 0 && <Progress value={progress} />}
 
