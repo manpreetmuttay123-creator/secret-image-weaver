@@ -28,7 +28,6 @@ function EncodePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [password, setPassword] = useState("");
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [stegoUrl, setStegoUrl] = useState<string | null>(null);
