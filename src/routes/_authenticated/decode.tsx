@@ -39,12 +39,11 @@ function DecodePage() {
 
   const onDecode = async () => {
     if (!file) return toast.error("Choose a stego-image.");
-    if (!password) return toast.error("Enter the password.");
     setBusy(true); setRevealed(null);
     try {
       const img = await fileToImageData(file);
       const payload = extractBytesFromImageData(img);
-      const msg = await decryptPayload(payload, password);
+      const msg = await decryptPayload(payload, "stegocrypt-default-key");
       setRevealed(msg);
       log("success", msg.length);
       toast.success("Message decoded");
