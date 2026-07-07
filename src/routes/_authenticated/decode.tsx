@@ -91,10 +91,6 @@ function DecodePage() {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="pw">Password</Label>
-            <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
 
           <Button onClick={onDecode} disabled={busy || !file} className="w-full">
             {busy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Unlock className="h-4 w-4 mr-2" />}
