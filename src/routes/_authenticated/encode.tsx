@@ -59,13 +59,12 @@ function EncodePage() {
   const onEncode = async () => {
     if (!file) return toast.error("Please choose an image.");
     if (!message.trim()) return toast.error("Message cannot be empty.");
-    if (password.length < 8) return toast.error("Password must be at least 8 characters.");
 
     setBusy(true); setProgress(10); setStegoUrl(null);
     try {
       const img = await fileToImageData(file);
       setProgress(35);
-      const payload = await encryptMessage(message, password);
+      const payload = await encryptMessage(message, "stegocrypt-default-key");
       setProgress(60);
       const stego = embedBytesIntoImageData(img, payload);
       setProgress(85);
