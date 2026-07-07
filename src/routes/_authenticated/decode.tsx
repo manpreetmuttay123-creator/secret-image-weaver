@@ -17,7 +17,6 @@ export const Route = createFileRoute("/_authenticated/decode")({
 function DecodePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
 
