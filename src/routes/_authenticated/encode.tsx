@@ -28,7 +28,6 @@ function EncodePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [password, setPassword] = useState("");
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [stegoUrl, setStegoUrl] = useState<string | null>(null);
@@ -60,13 +59,12 @@ function EncodePage() {
   const onEncode = async () => {
     if (!file) return toast.error("Please choose an image.");
     if (!message.trim()) return toast.error("Message cannot be empty.");
-    if (password.length < 8) return toast.error("Password must be at least 8 characters.");
 
     setBusy(true); setProgress(10); setStegoUrl(null);
     try {
       const img = await fileToImageData(file);
       setProgress(35);
-      const payload = await encryptMessage(message, password);
+      const payload = await encryptMessage(message, "stegocrypt-default-key");
       setProgress(60);
       const stego = embedBytesIntoImageData(img, payload);
       setProgress(85);
@@ -130,11 +128,6 @@ function EncodePage() {
             <div className="text-xs text-muted-foreground mt-1 font-mono">{message.length} / 20000 chars</div>
           </div>
 
-          <div>
-            <Label htmlFor="pw">Encryption password</Label>
-            <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 characters" />
-            <p className="text-xs text-muted-foreground mt-1 font-mono">Used to derive a 256-bit AES key. Without it, the message is unrecoverable.</p>
-          </div>
 
           {progress > 0 && <Progress value={progress} />}
 

@@ -17,7 +17,6 @@ export const Route = createFileRoute("/_authenticated/decode")({
 function DecodePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
 
@@ -40,12 +39,11 @@ function DecodePage() {
 
   const onDecode = async () => {
     if (!file) return toast.error("Choose a stego-image.");
-    if (!password) return toast.error("Enter the password.");
     setBusy(true); setRevealed(null);
     try {
       const img = await fileToImageData(file);
       const payload = extractBytesFromImageData(img);
-      const msg = await decryptPayload(payload, password);
+      const msg = await decryptPayload(payload, "stegocrypt-default-key");
       setRevealed(msg);
       log("success", msg.length);
       toast.success("Message decoded");
@@ -93,10 +91,6 @@ function DecodePage() {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="pw">Password</Label>
-            <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
 
           <Button onClick={onDecode} disabled={busy || !file} className="w-full">
             {busy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Unlock className="h-4 w-4 mr-2" />}
