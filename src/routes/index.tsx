@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
       { title: "StegoCrypt — Secure Image Steganography" },
       { name: "description", content: "Hide AES-256 encrypted text messages inside PNG images using LSB steganography. All crypto runs in your browser." },
       { property: "og:title", content: "StegoCrypt — Secure Image Steganography" },
-      { property: "og:description", content: "Hide AES-256 encrypted text messages inside PNG images using LSB steganography." },
+      { property: "og:description", content: "Hide AES-256 encrypted text messages inside PNG images using LSB steganography. All crypto runs in your browser." },
     ],
   }),
   component: Landing,
